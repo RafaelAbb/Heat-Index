@@ -43,7 +43,7 @@ export default function LocationSearch({ currentLocation, onSelect, onDetect }: 
   }
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-md">
+    <div ref={wrapperRef} className="relative w-full max-w-md" style={{ zIndex: 100 }}>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">📍</span>
@@ -53,6 +53,7 @@ export default function LocationSearch({ currentLocation, onSelect, onDetect }: 
             value={query}
             onChange={e => setQuery(e.target.value)}
             onFocus={() => results.length > 0 && setOpen(true)}
+            dir="auto"
             className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
           {loading && (
@@ -69,17 +70,37 @@ export default function LocationSearch({ currentLocation, onSelect, onDetect }: 
       </div>
 
       {open && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden z-50 shadow-xl">
+        <div
+          className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-y-auto"
+          style={{
+            zIndex: 9999,
+            maxHeight: '260px',
+            background: '#1a2235',
+            border: '1px solid rgba(99,120,180,0.25)',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
+          }}
+        >
           {results.map((r, i) => (
-            <button
+            <div
               key={i}
               onClick={() => pick(r)}
-              className="w-full text-left px-4 py-3 hover:bg-slate-700 transition-colors border-b border-slate-700/50 last:border-0"
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => e.key === 'Enter' && pick(r)}
+              className="cursor-pointer px-4 py-3 transition-colors"
+              style={{
+                borderBottom: i < results.length - 1 ? '1px solid rgba(99,120,180,0.12)' : 'none',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,120,180,0.15)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
-              <span className="text-sm font-medium text-slate-100">{r.name}</span>
-              {r.admin1 && <span className="text-xs text-slate-400 ml-2">{r.admin1}</span>}
-              <span className="text-xs text-slate-500 ml-2">{r.country}</span>
-            </button>
+              <p dir="auto" style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#f1f5f9', lineHeight: '1.4' }}>
+                {r.name}
+              </p>
+              <p dir="auto" style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#64748b', lineHeight: '1.4' }}>
+                {[r.admin1, r.country].filter(Boolean).join(', ')}
+              </p>
+            </div>
           ))}
         </div>
       )}
