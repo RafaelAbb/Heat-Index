@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { fetchWeather, WeatherData } from '../lib/weather'
+import { fetchWeather, WeatherData, HourlyPoint } from '../lib/weather'
 import { reverseGeocode } from '../lib/geocoding'
 import { calcHeatIndex } from '../lib/heatIndex'
 
@@ -11,6 +11,7 @@ export interface WeatherState {
   lon: number | null
   weather: WeatherData | null
   heatIndex: number | null
+  hourlyData: HourlyPoint[]
 }
 
 export function useWeather() {
@@ -22,15 +23,17 @@ export function useWeather() {
     lon: null,
     weather: null,
     heatIndex: null,
+    hourlyData: [],
   })
 
   const loadWeather = useCallback(async (lat: number, lon: number, locationName?: string) => {
     setState(s => ({ ...s, loading: true, error: null }))
     try {
-      const [weather, name] = await Promise.all([
+      const [result, name] = await Promise.all([
         fetchWeather(lat, lon),
         locationName ? Promise.resolve(locationName) : reverseGeocode(lat, lon),
       ])
+      const weather = result.current
       const hi = calcHeatIndex(weather.temperature, weather.humidity)
       setState({
         loading: false,
@@ -40,6 +43,7 @@ export function useWeather() {
         lon,
         weather,
         heatIndex: hi,
+        hourlyData: result.hourly,
       })
     } catch (e) {
       setState(s => ({
@@ -52,7 +56,6 @@ export function useWeather() {
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      // Default to Tel Aviv
       loadWeather(32.0853, 34.7818, 'Tel Aviv, Israel')
       return
     }

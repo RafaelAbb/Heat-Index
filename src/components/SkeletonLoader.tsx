@@ -24,6 +24,15 @@ export default function SkeletonLoader() {
         </div>
       </div>
 
+      {/* Hourly chart skeleton */}
+      <div className="w-full bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4">
+        <div className="flex justify-between mb-3">
+          <div className="skeleton w-36 h-4 rounded" />
+          <div className="skeleton w-24 h-4 rounded" />
+        </div>
+        <div className="skeleton w-full h-36 rounded-lg" />
+      </div>
+
       {/* Info panel skeleton */}
       <div className="skeleton w-full h-12 rounded-xl" />
     </div>

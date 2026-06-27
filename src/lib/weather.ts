@@ -1,3 +1,5 @@
+import { calcHeatIndex } from './heatIndex'
+
 export interface WeatherData {
   temperature: number
   humidity: number
@@ -7,24 +9,49 @@ export interface WeatherData {
   weatherCode: number
 }
 
-export async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
+export interface HourlyPoint {
+  hour: number
+  temperature: number
+  humidity: number
+  heatIndex: number | null
+}
+
+export interface WeatherResult {
+  current: WeatherData
+  hourly: HourlyPoint[]
+}
+
+export async function fetchWeather(lat: number, lon: number): Promise<WeatherResult> {
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${lat}&longitude=${lon}` +
     `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,weather_code` +
+    `&hourly=temperature_2m,relative_humidity_2m` +
+    `&forecast_days=1&timezone=auto` +
     `&wind_speed_unit=kmh`
 
   const res = await fetch(url)
   if (!res.ok) throw new Error('Weather fetch failed')
   const data = await res.json()
   const c = data.current
+
+  const hourly: HourlyPoint[] =(data.hourly.time as string[]).map((timeStr, i) => {
+    const hour = new Date(timeStr).getHours()
+    const temperature = data.hourly.temperature_2m[i] as number
+    const humidity = data.hourly.relative_humidity_2m[i] as number
+    return { hour, temperature, humidity, heatIndex: calcHeatIndex(temperature, humidity) }
+  })
+
   return {
-    temperature: c.temperature_2m,
-    humidity: c.relative_humidity_2m,
-    windSpeed: c.wind_speed_10m,
-    precipitation: c.precipitation,
-    feelsLike: c.apparent_temperature,
-    weatherCode: c.weather_code,
+    current: {
+      temperature: c.temperature_2m,
+      humidity: c.relative_humidity_2m,
+      windSpeed: c.wind_speed_10m,
+      precipitation: c.precipitation,
+      feelsLike: c.apparent_temperature,
+      weatherCode: c.weather_code,
+    },
+    hourly,
   }
 }
 

@@ -4,12 +4,13 @@ import { getSeverity } from './lib/heatIndex'
 import HeatIndexGauge from './components/HeatIndexGauge'
 import SeverityBadge from './components/SeverityBadge'
 import WeatherCard from './components/WeatherCard'
+import HourlyHeatChart from './components/HourlyHeatChart'
 import LocationSearch from './components/LocationSearch'
 import InfoPanel from './components/InfoPanel'
 import SkeletonLoader from './components/SkeletonLoader'
 
 export default function App() {
-  const { loading, error, location, weather, heatIndex, loadWeather } = useWeather()
+  const { loading, error, location, weather, heatIndex, hourlyData, loadWeather } = useWeather()
 
   const redetect = useCallback(() => {
     if (!navigator.geolocation) return
@@ -88,8 +89,15 @@ export default function App() {
             <WeatherCard weather={weather} />
           </div>
 
+          {/* Hourly heat index chart */}
+          {hourlyData.length > 0 && (
+            <div className="animate-fade-up w-full" style={{ animationDelay: '0.24s' }}>
+              <HourlyHeatChart data={hourlyData} />
+            </div>
+          )}
+
           {/* Info panel */}
-          <div className="animate-fade-up w-full flex justify-center" style={{ animationDelay: '0.24s' }}>
+          <div className="animate-fade-up w-full flex justify-center" style={{ animationDelay: '0.30s' }}>
             <InfoPanel />
           </div>
 
